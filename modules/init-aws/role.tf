@@ -47,7 +47,8 @@ module "iam_policy" {
       "Action": [
         "ec2:Describe*",
         "sts:AssumeRole",
-        "s3:*"
+        "s3:*",
+        "dynamodb:*"
       ],
       "Effect": "Allow",
       "Resource": "*"

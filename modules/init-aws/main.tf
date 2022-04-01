@@ -2,7 +2,7 @@ terraform {
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = "~> 3.27"
+      version = "4.8.0"
     }
   }
   required_version = ">= 0.14.9"
@@ -10,10 +10,6 @@ terraform {
 
 resource "aws_s3_bucket" "terraform_state" {
   bucket = "tfstate-${data.aws_caller_identity.current.account_id}"
-
-  versioning {
-    enabled = true
-  }
 
   lifecycle {
     prevent_destroy = true

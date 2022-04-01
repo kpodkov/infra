@@ -39,7 +39,7 @@ Default output format [None]:
 4. Configure the `terraform` profile using credentials from the assumed role:
 
 ```shell
-AWS_ACCOUNT_ID=
+AWS_ACCOUNT_ID=731310336214
 
 # Assume a role using STS and save the credentials to a local AWS Profile
 eval $(aws sts assume-role \
