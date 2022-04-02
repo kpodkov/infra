@@ -1,7 +1,7 @@
 #!/usr/bin/bash
 IMAGE="hashicorp/terraform:1.1.7"
 
-docker run --tty \
+docker run \
   --env TF_VAR_snowflake_account="ys22818.eu-west-1" \
   --env TF_VAR_snowflake_user="kpodkov" \
   --env TF_VAR_snowflake_password="$SNOWFLAKE_PASSWORD" \

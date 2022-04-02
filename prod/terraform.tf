@@ -11,10 +11,21 @@ terraform {
       source  = "hashicorp/aws"
       version = "4.8.0"
     }
+    snowflake = {
+      source  = "chanzuckerberg/snowflake"
+      version = "0.29.0"
+    }
   }
 }
 
 provider "aws" {
   profile = "default"
   region  = "eu-central-1"
+}
+
+provider snowflake {
+  username = var.snowflake_user
+  password = var.snowflake_password
+  account  = var.snowflake_account
+  role     = "ACCOUNTADMIN"
 }
