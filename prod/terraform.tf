@@ -15,8 +15,13 @@ terraform {
       source  = "chanzuckerberg/snowflake"
       version = "0.29.0"
     }
+    azuread = {
+      source  = "hashicorp/azuread"
+      version = "2.19.1"
+    }
   }
 }
+
 
 provider "aws" {
   profile = "default"
@@ -28,4 +33,10 @@ provider snowflake {
   password = var.snowflake_password
   account  = var.snowflake_account
   role     = "ACCOUNTADMIN"
+}
+
+provider "azuread" {
+  tenant_id = var.azure_tenant_id
+  client_id = var.azure_client_id
+  client_secret = var.azure_client_secret
 }

@@ -18,8 +18,16 @@ variable "snowflake_account" {
   type = string
 }
 
-# Azure
-#variable "client_secret" {
-#  type      = string
-#  sensitive = true
-#}
+#Azure
+variable "azure_tenant_id" {
+  type = string
+}
+
+variable "azure_client_id" {
+  type = string
+}
+
+variable "azure_client_secret" {
+  type      = string
+  sensitive = true
+}

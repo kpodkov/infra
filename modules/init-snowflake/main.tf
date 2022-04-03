@@ -6,5 +6,9 @@ terraform {
       source  = "chanzuckerberg/snowflake"
       version = "0.29.0"
     }
+    azuread = {
+      source  = "hashicorp/azuread"
+      version = "2.19.1"
+    }
   }
 }
