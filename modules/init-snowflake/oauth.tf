@@ -1,23 +1,20 @@
 resource "azuread_application" "snowflake" {
   display_name    = "Snowflake"
   identifier_uris = [
-    "https://snowflake-oauth.kirillpodkovoutlook.onmicrosoft.com",
-    lower(data.snowflake_current_account.current.url)
+    "https://snowflake-oauth.kirillpodkovoutlook.onmicrosoft.com"
   ]
   owners = [data.azuread_client_config.current.object_id]
   lifecycle {
-    ignore_changes = [web]
+    ignore_changes = [identifier_uris, web]
   }
 }
 
 resource "azuread_service_principal" "snowflake" {
-  application_id                = azuread_application.snowflake.application_id
-  app_role_assignment_required  = false
-  owners                        = [data.azuread_client_config.current.object_id]
-  preferred_single_sign_on_mode = "saml"
+  application_id               = azuread_application.snowflake.application_id
+  app_role_assignment_required = false
+  owners                       = [data.azuread_client_config.current.object_id]
   feature_tags {
-    gallery               = true
-    custom_single_sign_on = true
+    gallery = true
   }
   depends_on = [
     azuread_application.snowflake
