@@ -40,3 +40,7 @@ provider "azuread" {
   client_id = var.azure_client_id
   client_secret = var.azure_client_secret
 }
+
+provider "tls" {
+  # Configuration options
+}

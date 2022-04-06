@@ -1,7 +1,7 @@
 #!/usr/bin/bash
-IMAGE="hashicorp/terraform:1.1.7"
+IMAGE="ci:latest"
 
-docker run \
+docker run -it \
   --env TF_VAR_azure_tenant_id="62fa15fd-0fb1-432a-96fd-ef6e5d53587c" \
   --env TF_VAR_azure_client_id="9013b511-b735-43bf-ba6e-44e5554a8e0b" \
   --env TF_VAR_azure_client_secret=$AZURE_SECRET \
@@ -9,7 +9,10 @@ docker run \
   --env TF_VAR_snowflake_user="kpodkov" \
   --env TF_VAR_snowflake_password="$SNOWFLAKE_PASSWORD" \
   --volume "$HOME/.aws:/root/.aws" \
+  --volume "$HOME/.azure:/root/.azure" \
   --volume "$PWD:/workspace" \
   --workdir "/workspace/prod" \
   $IMAGE \
   "$@"
+#  /bin/ash
+#  "$@"
