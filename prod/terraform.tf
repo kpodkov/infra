@@ -13,7 +13,7 @@ terraform {
     }
     snowflake = {
       source  = "chanzuckerberg/snowflake"
-      version = "0.29.0"
+      version = "0.30.0"
     }
     azuread = {
       source  = "hashicorp/azuread"
