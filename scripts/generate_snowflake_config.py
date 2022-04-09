@@ -20,7 +20,7 @@ def create_resources() -> Dict[str, Any]:
             team = {'domain': team_config['domain'].upper(), 'name': team_config['team'].upper()}
             roles = [{'name': f'{team["name"]}_ADMIN', 'comment': f'{team["name"]} administrative user'},
                      {'name': f'{team["name"]}_ANALYST', 'comment': f'{team["name"]} user with limited write permissions'},
-                     {'name': f'{team["name"]}_USER', 'comment': f'{team["name"]} read-only user'}]
+                     {'name': f'{team["name"]}_READ', 'comment': f'{team["name"]} read-only user'}]
             warehouses = [
                 {'name': f'{team["name"]}_WH', 'quota': team_config['quota'], 'resource_monitor': f'{team["name"]}_WH',
                  'auto_suspend': team_config['auto_suspend']}]
@@ -66,7 +66,7 @@ def create_role_grants() -> Dict[str, List[str]]:
             # Team Grants - key: role being granted, value list of roles to grant to
             grants_to_roles[f'{team_name}_ADMIN'] = ['SYSADMIN']
             grants_to_roles[f'{team_name}_ANALYST'] = [f'{team_name}_ADMIN']
-            grants_to_roles[f'{team_name}_USER'] = [f'{team_name}_ADMIN', f'{team_name}_ANALYST']
+            grants_to_roles[f'{team_name}_READ'] = [f'{team_name}_ADMIN', f'{team_name}_ANALYST']
             grants_to_roles['TASKADMIN'].append(f'{team_name}_ADMIN')
 
             # Additional Grants
@@ -82,9 +82,9 @@ def create_role_grants() -> Dict[str, List[str]]:
                     grants_to_roles[role_name].append(f'{team_name}_ANALYST')
             for role_name in config['additional_role_grants']['user']:
                 if role_name not in grants_to_roles.keys():
-                    grants_to_roles[role_name] = [f'{team_name}_USER']
+                    grants_to_roles[role_name] = [f'{team_name}_READ']
                 else:
-                    grants_to_roles[role_name].append(f'{team_name}_USER')
+                    grants_to_roles[role_name].append(f'{team_name}_READ')
 
     return grants_to_roles
 
@@ -103,7 +103,7 @@ def create_database_grants() -> List[Dict[str, Any]]:
             share_roles = []
 
             # Team Database Grants
-            usage_roles = share_roles + [f'{team_name}_ADMIN', f'{team_name}_ANALYST']
+            usage_roles = share_roles + [f'{team_name}_ADMIN', f'{team_name}_ANALYST', f'{team_name}_READ']
             monitor_roles = share_roles + [f'{team_name}_ADMIN', f'{team_name}_ANALYST']
             create_schema_roles = [f'{team_name}_ADMIN']
             database_grants.append(
@@ -132,10 +132,10 @@ def create_warehouse_grants() -> List[Dict[str, Any]]:
             team_name = config['team'].upper()
 
             # Team Warehouse Grants
-            operate_roles = [f'{team_name}_ADMIN', f'{team_name}_ANALYST', f'{team_name}_USER']
-            monitor_roles = [f'{team_name}_ADMIN', f'{team_name}_ANALYST', f'{team_name}_USER']
+            operate_roles = [f'{team_name}_ADMIN', f'{team_name}_ANALYST', f'{team_name}_READ']
+            monitor_roles = [f'{team_name}_ADMIN', f'{team_name}_ANALYST', f'{team_name}_READ']
             modify_roles = [f'{team_name}_ADMIN', f'{team_name}_ANALYST']
-            usage_roles = [f'{team_name}_ADMIN', f'{team_name}_ANALYST', f'{team_name}_USER']
+            usage_roles = [f'{team_name}_ADMIN', f'{team_name}_ANALYST', f'{team_name}_READ']
             warehouse_grants.append(
                 {'warehouse_privilege': f'{team_name}_WH_OPERATE', 'roles': operate_roles,
                  'with_grant_option': False})
