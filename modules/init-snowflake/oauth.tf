@@ -1,7 +1,7 @@
 resource "azuread_application" "oauth" {
-  display_name    = "Snowflake"
-  identifier_uris = ["https://snowflake-oauth.kirillpodkovoutlook.onmicrosoft.com"]
-  owners          = [data.azuread_client_config.current.object_id, data.azuread_user.kirill.object_id]
+  display_name = "Snowflake"
+  #  identifier_uris = ["https://snowflake-oauth.kirillpodkovoutlook.onmicrosoft.com"]
+  owners       = [data.azuread_client_config.current.object_id, data.azuread_user.kirill.object_id]
 
   api {
     mapped_claims_enabled = true
@@ -29,30 +29,32 @@ resource "azuread_application" "oauth" {
   }
 
   dynamic "app_role" {
-    for_each = ["db_1", "db_2", "db_3"]
+    for_each = ["db1", "db2", "db3"]
     content {
       allowed_member_types = ["Application"]
       description          = "Admins can manage roles and perform all task actions"
-      display_name         = "${lower(app_role.key)}_admin"
+      display_name         = "${lower(app_role.value)}_admin"
       enabled              = true
-      id                   = uuidv5("oid", app_role.key)
-      value                = "session:role:${lower(app_role.key)}_admin"
+      id                   = uuidv5("oid", app_role.value)
+      value                = "session:role:${lower(app_role.value)}_admin"
     }
   }
 
   feature_tags {
     gallery = false
+    enterprise = true
   }
   lifecycle {
-    ignore_changes = [identifier_uris, web]
+    ignore_changes = [web]
   }
 }
 
-resource "azuread_service_principal" "oauth" {
-  owners          = [data.azuread_client_config.current.object_id, data.azuread_user.kirill.object_id]
-  application_id = azuread_application.oauth.application_id
-  depends_on     = [azuread_application.oauth]
-}
+# TODO: Need to make the below manually. App registration experience permission with terraform svp
+#resource "azuread_service_principal" "oauth" {
+#  owners         = [data.azuread_client_config.current.object_id, data.azuread_user.kirill.object_id]
+#  application_id = azuread_application.oauth.application_id
+#  depends_on     = [azuread_application.oauth]
+#}
 
 resource "snowflake_external_oauth_integration" "azure" {
   name                             = "AZURE_OAUTH"
@@ -61,10 +63,8 @@ resource "snowflake_external_oauth_integration" "azure" {
   issuer                           = "https://sts.windows.net/${data.azuread_client_config.current.tenant_id}"
   snowflake_user_mapping_attribute = "LOGIN_NAME"
   jws_keys_urls                    = ["https://login.windows.net/common/discovery/keys"]
-  audience_urls                    = concat([
-    "https://analysis.windows.net/powerbi/connector/Snowflake"
-  ], tolist(azuread_application.oauth.identifier_uris))
-  token_user_mapping_claims = [
+  audience_urls                    = ["https://analysis.windows.net/powerbi/connector/Snowflake"]
+  token_user_mapping_claims        = [
     "upn"
   ]
   lifecycle {

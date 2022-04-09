@@ -27,3 +27,4 @@ terraform.rc
 
 # IDE
 .idea/
+tmp/

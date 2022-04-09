@@ -1,6 +1,33 @@
 #!/usr/bin/bash
 IMAGE="ci:latest"
+PYTHON_IMAGE="python:3.9.12-slim-buster"
 
+echo "========================"
+echo " Cleaning tmp directory"
+echo "========================"
+docker run --rm -it \
+  --volume "$HOME/.aws:/root/.aws" \
+  --volume "$HOME/.azure:/root/.azure" \
+  --volume "$PWD:/workspace" \
+  --workdir "/workspace" \
+  "${PYTHON_IMAGE}" \
+  find . -type d -name "tmp" -prune -exec rm -rf {} \;
+
+echo "============================================="
+echo " Generating config.json for terraform locals"
+echo "============================================="
+docker run -it \
+  --volume "$HOME/.aws:/root/.aws" \
+  --volume "$HOME/.azure:/root/.azure" \
+  --volume "$PWD:/workspace" \
+  --workdir "/workspace" \
+  $PYTHON_IMAGE \
+  pip3 install -r scripts/requirements.txt >/dev/null
+python3 scripts/generate_snowflake_config.py
+
+echo "==================="
+echo " Running Terraform"
+echo "==================="
 docker run -it \
   --env TF_VAR_azure_tenant_id="62fa15fd-0fb1-432a-96fd-ef6e5d53587c" \
   --env TF_VAR_azure_client_id="9013b511-b735-43bf-ba6e-44e5554a8e0b" \
@@ -15,4 +42,3 @@ docker run -it \
   $IMAGE \
   "$@"
 #  /bin/ash
-#  "$@"
