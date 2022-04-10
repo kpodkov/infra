@@ -1,5 +1,7 @@
 FROM hashicorp/terraform:1.1.7
 
+# Customize TF image if desired
+
 # ===================
 #  Install Azure CLI
 # ===================

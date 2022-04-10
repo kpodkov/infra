@@ -1,3 +1,2 @@
 variable aws_profile {
-
 }

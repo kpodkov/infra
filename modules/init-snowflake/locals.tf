@@ -11,7 +11,3 @@ locals {
   #  rsa_key_users                 = {for user in local.config["rsa_key_users"] : user["name"] => user}
   #  azure_application_assignments = {for app in local.config["azure_application_assignments"] : app["app_id"] => app}
 }
-
-output debug {
-  value = local.roles
-}

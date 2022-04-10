@@ -5,6 +5,7 @@ AZURE_TENANT_ID    :="62fa15fd-0fb1-432a-96fd-ef6e5d53587c"
 AZURE_CLIENT_ID    :="9013b511-b735-43bf-ba6e-44e5554a8e0b"
 SNOWFLAKE_ACCOUNT  :="ys22818.eu-west-1"
 SNOWFLAKE_USER     :="kpodkov"
+WORKDIR            := "/prod/snowflake"
 
 docker-build: docker-build
 plan: clean init generate-config
@@ -23,15 +24,22 @@ clean:
 	@docker run --rm -it \
 	  --volume "${HOME}/.aws:/root/.aws" \
 	  --volume "${HOME}/.azure:/root/.azure" \
-	  --volume "${PWD}:/workspace" \
-	  --workdir "/workspace" \
+	  --volume "${PWD}:/infra" \
+	  --workdir "/infra" \
 	  "${PYTHON_IMAGE}" \
 	  find . -type d -name "tmp" -prune -exec rm -rf {} \;
 	@docker run --rm -it \
 	  --volume "${HOME}/.aws:/root/.aws" \
 	  --volume "${HOME}/.azure:/root/.azure" \
-	  --volume "${PWD}:/workspace" \
-	  --workdir "/workspace" \
+	  --volume "${PWD}:/infra" \
+	  --workdir "/infra" \
+	  "${PYTHON_IMAGE}" \
+	  find . -type d -name ".terraform" -prune -exec rm -rf {} \;
+	@docker run --rm -it \
+	  --volume "${HOME}/.aws:/root/.aws" \
+	  --volume "${HOME}/.azure:/root/.azure" \
+	  --volume "${PWD}:/infra" \
+	  --workdir "/infra" \
 	  "${PYTHON_IMAGE}" \
 	  find . -type f -name "tfplan" -prune -exec rm -rf {} \;
 
@@ -42,8 +50,8 @@ generate-config:
 	@docker run -it \
 	  --volume "${HOME}/.aws:/root/.aws" \
 	  --volume "${HOME}/.azure:/root/.azure" \
-	  --volume "${PWD}:/workspace" \
-	  --workdir "/workspace" \
+	  --volume "${PWD}:/infra" \
+	  --workdir "/infra" \
 	  ${PYTHON_IMAGE} \
 	  pip3 install -r scripts/requirements.txt >/dev/null; python3 scripts/generate_snowflake_config.py
 
@@ -61,8 +69,8 @@ init:
  	  --env TF_LOG="${TF_LOG}" \
  	  --volume "${HOME}/.aws:/root/.aws" \
  	  --volume "${HOME}/.azure:/root/.azure" \
- 	  --volume "${PWD}:/workspace" \
- 	  --workdir "/workspace/prod" \
+ 	  --volume "${PWD}:/infra" \
+ 	  --workdir "/infra/${WORKDIR}" \
  	  ${TF_IMAGE} \
  	  init
 
@@ -80,8 +88,8 @@ plan:
    	  --env TF_LOG="${TF_LOG}" \
  	  --volume "${HOME}/.aws:/root/.aws" \
  	  --volume "${HOME}/.azure:/root/.azure" \
- 	  --volume "${PWD}:/workspace" \
- 	  --workdir "/workspace/prod" \
+ 	  --volume "${PWD}:/infra" \
+ 	  --workdir "/infra/${WORKDIR}" \
  	  ${TF_IMAGE} \
  	  plan -out=tfplan -input=false
 
@@ -99,7 +107,7 @@ apply:
  	  --env TF_LOG="${TF_LOG}" \
  	  --volume "${HOME}/.aws:/root/.aws" \
  	  --volume "${HOME}/.azure:/root/.azure" \
- 	  --volume "${PWD}:/workspace" \
- 	  --workdir "/workspace/prod" \
+ 	  --volume "${PWD}:/infra" \
+ 	  --workdir "/infra/${WORKDIR}" \
  	  ${TF_IMAGE} \
  	  apply -input=false tfplan

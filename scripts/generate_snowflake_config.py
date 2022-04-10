@@ -5,7 +5,7 @@ import os
 from pathlib import Path
 from typing import Dict, Any, List
 
-TEAM_CONFIG_DIR = os.fsencode("config/teams")
+TEAM_CONFIG_DIR = os.fsencode("config/snowflake/teams")
 OUTPUT_DIR = f"./modules/init-snowflake/tmp"
 
 
