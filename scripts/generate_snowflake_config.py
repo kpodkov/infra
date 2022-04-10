@@ -6,28 +6,27 @@ from pathlib import Path
 from typing import Dict, Any, List
 
 TEAM_CONFIG_DIR = os.fsencode("config/teams")
+OUTPUT_DIR = f"./modules/init-snowflake/tmp"
 
 
 def create_resources() -> Dict[str, Any]:
     """
     :return: a dict containing required snowflake resources for each team
     """
-    team_resources = {'teams': [], 'warehouses': [], 'databases': [], 'roles': []}
+    team_resources = {'teams': []}
     for file in os.listdir(TEAM_CONFIG_DIR):
         file_path = f"{os.fsdecode(TEAM_CONFIG_DIR)}/{os.fsdecode(file)}"
         with open(file_path) as f:
             team_config = yaml.load(f, Loader=yaml.FullLoader)
             team = {'domain': team_config['domain'].upper(), 'name': team_config['team'].upper()}
             roles = [{'name': f'{team["name"]}_ADMIN', 'comment': f'{team["name"]} administrative user'},
-                     {'name': f'{team["name"]}_ANALYST', 'comment': f'{team["name"]} user with limited write permissions'},
+                     {'name': f'{team["name"]}_ANALYST',
+                      'comment': f'{team["name"]} user with limited write permissions'},
                      {'name': f'{team["name"]}_READ', 'comment': f'{team["name"]} read-only user'}]
             warehouses = [
                 {'name': f'{team["name"]}_WH', 'quota': team_config['quota'], 'resource_monitor': f'{team["name"]}_WH',
                  'auto_suspend': team_config['auto_suspend']}]
-            databases = [f'{team["name"]}_DB']
-
-            # Share roles
-            share_roles = []
+            databases = [{'name': f'{team["name"]}_DB', 'tags': {'name': 'domain', 'value': team_config['domain']}}]
 
             # Optional Resources
             additional_warehouses = []
@@ -41,12 +40,22 @@ def create_resources() -> Dict[str, Any]:
                                               'auto_suspend': warehouse['auto_suspend']})
             warehouses += additional_warehouses
 
+            additional_databases = []
+            for database in team_config['additional_databases']:
+                if not database['name'].upper().startswith(team["name"]):
+                    print(f'ERROR: For team [{team["name"]}], additional database name must start with the team name!')
+                    exit(1)
+                additional_databases.append(
+                    {'name': database['name'].upper(), 'tags': {'name': 'domain', 'value': team_config['domain']}})
+            databases += additional_databases
+
             # Final dict
+            team['warehouses'] = warehouses
+            team['databases'] = databases
+            team['roles'] = roles
+            team['rsa_users'] = create_rsa_users()
+            team['azure_apps'] = create_azure_application_assignments()
             team_resources['teams'] += [team]
-            team_resources['warehouses'] += warehouses
-            team_resources['databases'] += databases
-            team_resources['roles'] += roles
-            team_resources['roles'] += share_roles
 
     return team_resources
 
@@ -107,7 +116,8 @@ def create_database_grants() -> List[Dict[str, Any]]:
             monitor_roles = share_roles + [f'{team_name}_ADMIN', f'{team_name}_ANALYST']
             create_schema_roles = [f'{team_name}_ADMIN']
             database_grants.append(
-                {'database_privilege': f'{team_name}_DB_USAGE', 'roles': usage_roles, 'with_grant_option': True})
+                {'database_privilege': f'{team_name}_DB_USAGE', 'roles': usage_roles,
+                 'with_grant_option': True})
             database_grants.append(
                 {'database_privilege': f'{team_name}_DB_MONITOR', 'roles': monitor_roles,
                  'with_grant_option': True})
@@ -115,7 +125,20 @@ def create_database_grants() -> List[Dict[str, Any]]:
                 {'database_privilege': f'{team_name}_DB_CREATE_SCHEMA', 'roles': create_schema_roles,
                  'with_grant_option': True})
 
-    # print(json.dumps(grants_to_roles, indent=4))
+            # Additional Database Grants
+            usage_roles = share_roles + [f'{team_name}_ADMIN', f'{team_name}_ANALYST', f'{team_name}_READ']
+            monitor_roles = share_roles + [f'{team_name}_ADMIN', f'{team_name}_ANALYST']
+            create_schema_roles = [f'{team_name}_ADMIN']
+            for database in config['additional_databases']:
+                database_grants.append(
+                    {'database_privilege': f'{database["name"].upper()}_USAGE', 'roles': usage_roles,
+                     'with_grant_option': True})
+                database_grants.append(
+                    {'database_privilege': f'{database["name"].upper()}_MONITOR', 'roles': monitor_roles,
+                     'with_grant_option': True})
+                database_grants.append(
+                    {'database_privilege': f'{database["name"].upper()}_CREATE_SCHEMA', 'roles': create_schema_roles,
+                     'with_grant_option': True})
     return database_grants
 
 
@@ -264,15 +287,14 @@ def create_azure_application_assignments() -> List[Dict[str, Any]]:
 
 
 if __name__ == '__main__':
-    team_configs = {'resources': create_resources(),
-                    'role_grants': create_role_grants(),
+    team_configs = {'global_resources': create_global_resources(),
+                    'resources': create_resources(),
                     'database_grants': create_database_grants(),
-                    'warehouse_grants': create_warehouse_grants(),
                     'resource_monitor_grants': create_resource_monitor_grants(),
-                    'global_resources': create_global_resources(),
-                    'rsa_key_users': create_rsa_users(),
-                    'azure_application_assignments': create_azure_application_assignments()}
-    Path("./modules/init-snowflake/tmp").mkdir(exist_ok=True)
-    with open('./modules/init-snowflake/tmp/config.json', 'w') as f:
+                    'role_grants': create_role_grants(),
+                    'warehouse_grants': create_warehouse_grants()
+                    }
+    Path(OUTPUT_DIR).mkdir(exist_ok=True)
+    with open(f'{OUTPUT_DIR}/config.json', 'w') as f:
         json.dump(team_configs, f)
-    print(f"generated {os.path.abspath('./modules/init-snowflake/tmp/config.json')}")
+    print(f"generated {os.path.abspath(f'{OUTPUT_DIR}/config.json')}")

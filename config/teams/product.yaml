@@ -1,5 +1,5 @@
-domain: knox
-team: security
+domain: product
+team: web
 quota: 50
 auto_suspend: 60
 

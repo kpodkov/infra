@@ -1,11 +1,15 @@
-domain: acme
-team: marketing
+domain: marketing
+team: crm
 quota: 50
 auto_suspend: 60
 
 # Additional resources
-additional_databases: [ ]
-additional_warehouses: [ ]
+additional_databases:
+  - name: "crm_extra_db"
+additional_warehouses:
+  - name: "crm_extra_wh"
+    quota: 20
+    auto_suspend: 60
 additional_role_grants:
   admin: [ ]
   analyst: [ ]

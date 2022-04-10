@@ -1,11 +1,15 @@
-domain: acme
-team: finance
+domain: finance
+team: erp
 quota: 50
 auto_suspend: 60
 
 # Additional resources
-additional_databases: [ ]
-additional_warehouses: [ ]
+additional_databases:
+  - name: "erp_extra_db"
+additional_warehouses:
+  - name: "erp_extra_wh"
+    quota: 20
+    auto_suspend: 60
 additional_role_grants:
   admin: [ ]
   analyst: [ ]

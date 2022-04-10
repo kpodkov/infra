@@ -1,18 +1,23 @@
 resource snowflake_database db {
-  for_each = local.databases
+  for_each = {for database in local.databases : database["name"] => database}
   name     = each.key
-  lifecycle {
-    prevent_destroy = true
-  }
+  #  tag {
+  #    name  = each.value["tags"]["name"]
+  #    value = each.value["tags"]["value"]
+  #  }
+  #
+  #  lifecycle {
+  #    prevent_destroy = true
+  #  }
 }
 
 resource snowflake_warehouse wh {
-  for_each            = local.warehouses
+  for_each            = {for warehouse in local.warehouses : warehouse["name"] => warehouse}
   name                = each.key
   warehouse_size      = "XSMALL"
   auto_resume         = true
   initially_suspended = true
-  auto_suspend        = local.auto_suspends[each.key]
+  auto_suspend        = each.value["auto_suspend"]
   resource_monitor    = snowflake_resource_monitor.monitor[each.key].name
   lifecycle {
     ignore_changes = [
@@ -25,9 +30,9 @@ resource snowflake_warehouse wh {
 }
 
 resource snowflake_resource_monitor monitor {
-  for_each        = local.resource_monitors
-  name            = upper(each.key)
-  credit_quota    = local.quotas[each.key]
+  for_each        = {for warehouse in local.warehouses : warehouse["name"] => warehouse}
+  name            = upper(each.value["resource_monitor"])
+  credit_quota    = each.value["quota"]
   frequency       = "WEEKLY"
   start_timestamp = "IMMEDIATELY"
   notify_triggers = [
@@ -54,7 +59,7 @@ resource snowflake_resource_monitor monitor {
 }
 
 resource "snowflake_role" "role" {
-  for_each = local.roles
+  for_each = {for role in local.roles : role["name"] => role}
   name     = each.key
-  comment  = local.roles[each.key]["comment"]
+  comment  = each.value["comment"]
 }

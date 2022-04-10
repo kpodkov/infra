@@ -1,5 +1,5 @@
-domain: acme
-team: operations
+domain: operations
+team: customer
 quota: 50
 auto_suspend: 60
 
