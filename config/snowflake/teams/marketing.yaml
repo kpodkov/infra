@@ -1,0 +1,20 @@
+domain: marketing
+team: crm
+quota: 50
+auto_suspend: 60
+
+# Additional resources
+additional_databases:
+  - name: "crm_extra_db"
+additional_warehouses:
+  - name: "crm_extra_wh"
+    quota: 20
+    auto_suspend: 60
+additional_role_grants:
+  admin: [ ]
+  analyst: [ ]
+  user: [ ]
+
+# Access
+rsa_key_users: [ ]
+azure_oauth_application_ids: [ ]

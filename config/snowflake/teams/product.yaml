@@ -1,0 +1,16 @@
+domain: product
+team: web
+quota: 50
+auto_suspend: 60
+
+# Additional resources
+additional_databases: [ ]
+additional_warehouses: [ ]
+additional_role_grants:
+  admin: [ ]
+  analyst: [ ]
+  user: [ ]
+
+# Access
+rsa_key_users: [ ]
+azure_oauth_application_ids: [ ]
